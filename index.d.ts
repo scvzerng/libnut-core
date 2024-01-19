@@ -9,6 +9,8 @@ export interface Bitmap {
 
 export interface Screen {
   capture(x?: number, y?: number, width?: number, height?: number): Bitmap;
+
+  captureWindow(x: number, y: number, width: number, height: number, handler: number): Bitmap;
   highlight(x: number, y: number, width: number, height: number, duration: number, opacity: number): void;
 }
 

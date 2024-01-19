@@ -10,13 +10,15 @@
 #endif
 
 #ifdef __cplusplus
-extern "C" 
+extern "C"
 {
 #endif
 
 /* Returns a raw bitmap of screengrab of the display (to be destroyed()'d by
  * caller), or NULL on error. */
 MMBitmapRef copyMMBitmapFromDisplayInRect(MMRect rect);
+
+MMBitmapRef copyMMBitmapFromWindowInRect(MMRect rect, HWND hWnd);
 
 #ifdef __cplusplus
 }

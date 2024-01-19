@@ -651,9 +651,9 @@ Napi::Boolean _focusWindow(const Napi::CallbackInfo &info) {
     Napi::Env env = info.Env();
 
     WindowHandle windowHandle = info[0].As<Napi::Number>().Int64Value();
-    
+
     bool result = focusWindow(windowHandle);
-    
+
     return Napi::Boolean::New(env, result);
 }
 
@@ -765,6 +765,45 @@ Napi::Object _captureScreen(const Napi::CallbackInfo &info) {
     return obj;
 }
 
+Napi::Object _captureWindow(const Napi::CallbackInfo &info) {
+    Napi::Env env = info.Env();
+
+    int64_t x;
+    int64_t y;
+    int64_t w;
+    int64_t h;
+    HWND windowHandle;
+    //If user has provided screen coords, use them!
+    if (info.Length() != 5) {
+        throw Napi::Error::New(env, "Parameter error");
+    }
+    x = info[0].As<Napi::Number>().Int64Value();
+    y = info[1].As<Napi::Number>().Int64Value();
+    w = info[2].As<Napi::Number>().Int64Value();
+    h = info[3].As<Napi::Number>().Int64Value();
+    windowHandle = reinterpret_cast<HWND>(info[4].As<Napi::Number>().Int64Value());
+    MMBitmapRef bitmap = copyMMBitmapFromWindowInRect(MMRectMake(x, y, w, h), windowHandle);
+
+    if (bitmap == NULL) {
+        throw Napi::Error::New(env, "Error: Failed to capture screen");
+    }
+
+    uint64_t bufferSize = bitmap->bytewidth * bitmap->height;
+    Napi::Buffer<char> buffer = Napi::Buffer<char>::Copy(env, (char *) bitmap->imageBuffer, bufferSize);
+
+    Napi::Object obj = Napi::Object::New(env);
+    obj.Set(Napi::String::New(env, "width"), Napi::Number::New(env, (double) bitmap->width));
+    obj.Set(Napi::String::New(env, "height"), Napi::Number::New(env, (double) bitmap->height));
+    obj.Set(Napi::String::New(env, "byteWidth"), Napi::Number::New(env, (double) bitmap->bytewidth));
+    obj.Set(Napi::String::New(env, "bitsPerPixel"), Napi::Number::New(env, bitmap->bitsPerPixel));
+    obj.Set(Napi::String::New(env, "bytesPerPixel"), Napi::Number::New(env, bitmap->bytesPerPixel));
+    obj.Set(Napi::String::New(env, "image"), buffer);
+
+    destroyMMBitmap(bitmap);
+
+    return obj;
+}
+
 Napi::Object Init(Napi::Env env, Napi::Object exports) {
     exports.Set(Napi::String::New(env, "dragMouse"), Napi::Function::New(env, _dragMouse));
     exports.Set(Napi::String::New(env, "moveMouse"), Napi::Function::New(env, _moveMouse));
@@ -790,6 +829,7 @@ Napi::Object Init(Napi::Env env, Napi::Object exports) {
     exports.Set(Napi::String::New(env, "resizeWindow"), Napi::Function::New(env, _resizeWindow));
     exports.Set(Napi::String::New(env, "moveWindow"), Napi::Function::New(env, _moveWindow));
     exports.Set(Napi::String::New(env, "captureScreen"), Napi::Function::New(env, _captureScreen));
+    exports.Set(Napi::String::New(env, "captureWindow"), Napi::Function::New(env, _captureWindow));
     exports.Set(Napi::String::New(env, "getXDisplayName"), Napi::Function::New(env, _getXDisplayName));
     exports.Set(Napi::String::New(env, "setXDisplayName"), Napi::Function::New(env, _setXDisplayName));
 

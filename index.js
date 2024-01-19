@@ -49,3 +49,15 @@ module.exports.screen.capture = function (x, y, width, height) {
         b.image
     );
 };
+
+module.exports.screen.captureWindow = function (x, y, width, height, handler) {
+    const b = libnut.captureWindow(x, y, width, height, handler);
+    return new bitmap(
+        b.width,
+        b.height,
+        b.byteWidth,
+        b.bitsPerPixel,
+        b.bytesPerPixel,
+        b.image
+    );
+}
